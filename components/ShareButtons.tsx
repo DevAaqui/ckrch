@@ -166,7 +166,7 @@ export function ShareButtons({ item }: ShareButtonsProps) {
             {onDesktop ? "WhatsApp Web" : "WhatsApp"}
           </span>
         </Button>
-        {onDesktop && (
+        {/* {onDesktop && (
           <Button
             className="min-w-0 px-3"
             isDisabled={busy}
@@ -181,7 +181,7 @@ export function ShareButtons({ item }: ShareButtonsProps) {
           >
             Open WA Web
           </Button>
-        )}
+        )} */}
         <Button
           className="min-w-0 flex-1 sm:flex-none"
           isDisabled={busy}

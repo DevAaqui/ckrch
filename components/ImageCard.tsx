@@ -96,7 +96,7 @@ export function ImageCard({ item }: ImageCardProps) {
   return (
     <Card
       id={item.id}
-      className="group relative flex h-full flex-col overflow-hidden border border-white/10 bg-white/[0.04] p-0 backdrop-blur-sm transition-shadow hover:shadow-xl"
+      className="group relative flex w-full flex-col overflow-hidden border border-white/10 bg-white/[0.04] p-0 backdrop-blur-sm transition-shadow hover:shadow-xl"
       variant="transparent"
     >
       <div
@@ -200,7 +200,7 @@ export function ImageCard({ item }: ImageCardProps) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
+      <div className="flex flex-col gap-3 p-4 sm:p-5">
         <div className="flex flex-col gap-1">
           <Card.Title className="text-base text-white sm:text-lg">
             {item.title}
@@ -237,7 +237,7 @@ export function ImageCard({ item }: ImageCardProps) {
 
         {hasVanished && <ShareButtons item={item} />}
 
-        <div className="mt-auto flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
           {phase === "intact" && (
             <Button
               className="w-full sm:w-auto"
