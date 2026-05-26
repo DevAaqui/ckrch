@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { Chip } from "@heroui/react";
 import { Sparkles } from "@gravity-ui/icons";
 
-import { ImageCard } from "@/components/ImageCard";
-import { galleryItems, VANISH_THRESHOLD } from "@/lib/images";
+import { GalleryGrid } from "@/components/GalleryGrid";
+import { VANISH_THRESHOLD } from "@/lib/images";
 
 export default function HomePage() {
   useEffect(() => {
@@ -33,18 +33,14 @@ export default function HomePage() {
             The Cockroach Gallery
           </h1>
           <p className="max-w-2xl text-pretty text-sm leading-relaxed text-white/70 sm:text-base">
-            Every tap on an image{" "}
-            <span className="font-medium text-white">summons a cockroach</span>{" "}
-            that scuttles onto the photo. Reach{" "}
+            Infest portraits{" "}
+            <span className="font-medium text-white">one at a time</span> — only
+            the active card accepts taps. Summon{" "}
             <span className="font-medium text-white">
               {VANISH_THRESHOLD} cockroaches
             </span>{" "}
-            and the swarm converges to{" "}
-            <span className="font-medium text-rose-300">
-              eat the image alive
-            </span>{" "}
-            — revealing a hidden message underneath. Fully responsive. Tap with
-            caution.
+            to devour it; then the next unlocks. The rest stay locked until
+            their turn.
           </p>
         </div>
       </header>
@@ -53,9 +49,7 @@ export default function HomePage() {
         aria-label="Image gallery"
         className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6"
       >
-        {galleryItems.map((item) => (
-          <ImageCard key={item.id} item={item} />
-        ))}
+        <GalleryGrid />
       </section>
 
       <footer className="mt-4 flex flex-col items-center gap-1 pb-4 pt-2 text-center text-xs text-white/40 sm:text-sm">

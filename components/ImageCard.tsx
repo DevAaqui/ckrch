@@ -2,27 +2,27 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Button, Card, Chip, Label, ProgressBar } from "@heroui/react";
-import { ArrowRotateLeft, Eye, Sparkles } from "@gravity-ui/icons";
+import { Eye, Sparkles } from "@gravity-ui/icons";
 
 import { Cockroach } from "@/components/Cockroach";
 import { ShareButtons } from "@/components/ShareButtons";
+import {
+  loadCardProgress,
+  saveCardProgress,
+  type CardPhase,
+  type StoredRoach,
+} from "@/lib/card-progress";
+import type { CardPlayStatus } from "@/lib/gallery-progress";
 import type { GalleryItem } from "@/lib/images";
 import { VANISH_THRESHOLD } from "@/lib/images";
 
 type ImageCardProps = {
   item: GalleryItem;
+  playStatus: CardPlayStatus;
+  onInfested?: () => void;
 };
 
-type Roach = {
-  id: number;
-  x: number;
-  y: number;
-  rotation: number;
-  size: number;
-  scuttleDelay: number;
-};
-
-type Phase = "intact" | "eating" | "vanished";
+type Roach = StoredRoach;
 
 const EATING_DURATION_MS = 1300;
 
@@ -37,51 +37,95 @@ function spawnRoach(id: number): Roach {
   };
 }
 
-export function ImageCard({ item }: ImageCardProps) {
+function resolvePhaseFromStorage(
+  clicks: number,
+  storedPhase: CardPhase,
+): CardPhase {
+  if (clicks >= VANISH_THRESHOLD) return "vanished";
+  if (storedPhase === "eating") return "intact";
+  return storedPhase === "vanished" ? "vanished" : "intact";
+}
+
+export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
   const [clicks, setClicks] = useState(0);
   const [roaches, setRoaches] = useState<Roach[]>([]);
-  const [phase, setPhase] = useState<Phase>("intact");
+  const [phase, setPhase] = useState<CardPhase>("intact");
+  const [hydrated, setHydrated] = useState(false);
   const eatingTimeoutRef = useRef<number | null>(null);
   const nextRoachId = useRef(0);
 
+  const persist = (
+    nextClicks: number,
+    nextRoaches: Roach[],
+    nextPhase: CardPhase,
+    nextRoachIdValue: number,
+  ) => {
+    saveCardProgress(item.id, {
+      clicks: nextClicks,
+      phase: nextPhase,
+      roaches: nextRoaches,
+      nextRoachId: nextRoachIdValue,
+    });
+  };
+
   useEffect(() => {
+    if (playStatus === "locked") {
+      setClicks(0);
+      setRoaches([]);
+      setPhase("intact");
+      nextRoachId.current = 0;
+      setHydrated(true);
+      return;
+    }
+
+    const stored = loadCardProgress(item.id);
+    if (stored) {
+      const restoredPhase = resolvePhaseFromStorage(stored.clicks, stored.phase);
+      setClicks(stored.clicks);
+      setRoaches(restoredPhase === "vanished" ? [] : stored.roaches);
+      setPhase(
+        playStatus === "infested" && restoredPhase !== "vanished"
+          ? "vanished"
+          : restoredPhase,
+      );
+      nextRoachId.current = stored.nextRoachId;
+    } else if (playStatus === "infested") {
+      setPhase("vanished");
+    }
+    setHydrated(true);
+
     return () => {
       if (eatingTimeoutRef.current !== null) {
         window.clearTimeout(eatingTimeoutRef.current);
       }
     };
-  }, []);
+  }, [item.id, playStatus]);
 
   const remaining = Math.max(VANISH_THRESHOLD - clicks, 0);
 
   const handleTap = () => {
-    if (phase !== "intact") return;
+    if (!hydrated || playStatus !== "active" || phase !== "intact") return;
 
     const nextCount = clicks + 1;
+    const newRoach = spawnRoach(nextRoachId.current++);
+    const nextRoaches = [...roaches, newRoach];
+
     setClicks(nextCount);
-    setRoaches((prev) => [
-      ...prev,
-      spawnRoach(nextRoachId.current++),
-    ]);
+    setRoaches(nextRoaches);
 
     if (nextCount >= VANISH_THRESHOLD) {
       setPhase("eating");
+      persist(nextCount, nextRoaches, "eating", nextRoachId.current);
       eatingTimeoutRef.current = window.setTimeout(() => {
         setPhase("vanished");
+        persist(nextCount, [], "vanished", nextRoachId.current);
         eatingTimeoutRef.current = null;
+        onInfested?.();
       }, EATING_DURATION_MS);
+      return;
     }
-  };
 
-  const handleReset = () => {
-    if (eatingTimeoutRef.current !== null) {
-      window.clearTimeout(eatingTimeoutRef.current);
-      eatingTimeoutRef.current = null;
-    }
-    setClicks(0);
-    setRoaches([]);
-    setPhase("intact");
-    nextRoachId.current = 0;
+    persist(nextCount, nextRoaches, "intact", nextRoachId.current);
   };
 
   const imageStageClass = useMemo(() => {
@@ -90,13 +134,22 @@ export function ImageCard({ item }: ImageCardProps) {
     return "";
   }, [phase]);
 
-  const hasVanished = phase === "vanished";
-  const showRoaches = phase !== "vanished";
+  const hasVanished = playStatus === "infested" || phase === "vanished";
+  const showRoaches = playStatus === "active" && phase !== "vanished";
+  const isLocked = playStatus === "locked";
+  const isActive = playStatus === "active";
+
+  const cardRingClass =
+    playStatus === "active"
+      ? "ring-2 ring-amber-400/70 shadow-amber-900/20"
+      : playStatus === "infested"
+        ? "ring-2 ring-emerald-500/40"
+        : "opacity-55 saturate-[0.65]";
 
   return (
     <Card
       id={item.id}
-      className="group relative flex w-full flex-col overflow-hidden border border-white/10 bg-white/[0.04] p-0 backdrop-blur-sm transition-shadow hover:shadow-xl"
+      className={`group relative flex w-full flex-col overflow-hidden border border-white/10 bg-white/[0.04] p-0 backdrop-blur-sm transition-all hover:shadow-xl ${cardRingClass}`}
       variant="transparent"
     >
       <div
@@ -105,9 +158,8 @@ export function ImageCard({ item }: ImageCardProps) {
         {!hasVanished ? (
           <img
             alt={item.title}
-            className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] ${
-              phase === "eating" ? "image-eaten" : ""
-            }`}
+            className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] ${phase === "eating" ? "image-eaten" : ""
+              }`}
             draggable={false}
             loading="lazy"
             src={item.src}
@@ -156,33 +208,36 @@ export function ImageCard({ item }: ImageCardProps) {
             );
           })}
 
-        {phase === "intact" && (
+        {isLocked && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-black/55 p-4 text-center backdrop-blur-[2px]">
+            <Chip color="default" size="sm" variant="soft">
+              <Chip.Label>Locked</Chip.Label>
+            </Chip>
+            <p className="max-w-[14rem] text-xs text-white/75">
+              Infest the previous portrait first.
+            </p>
+          </div>
+        )}
+
+        {isActive && phase === "intact" && (
           <div className="absolute left-3 top-3 z-10">
-            <Chip
-              color={remaining <= 3 ? "warning" : "accent"}
-              size="sm"
-              variant="soft"
-            >
-              <Chip.Label>
-                {remaining === 0
-                  ? "Threshold reached"
-                  : `${remaining} tap${remaining === 1 ? "" : "s"} to feast`}
-              </Chip.Label>
+            <Chip color="warning" size="sm" variant="primary">
+              <Chip.Label>Active — tap to infest</Chip.Label>
             </Chip>
           </div>
         )}
 
-        {phase === "intact" && clicks > 0 && (
+        {isActive && phase === "intact" && remaining > 0 && clicks > 0 && (
           <div className="absolute right-3 top-3 z-10">
-            <Chip color="danger" size="sm" variant="soft">
+            <Chip color="accent" size="sm" variant="soft">
               <Chip.Label>
-                {clicks} 🪳 {clicks === 1 ? "summoned" : "swarming"}
+                {remaining} tap{remaining === 1 ? "" : "s"} to feast
               </Chip.Label>
             </Chip>
           </div>
         )}
 
-        {phase === "eating" && (
+        {isActive && phase === "eating" && (
           <div className="absolute right-3 top-3 z-10">
             <Chip color="danger" size="sm" variant="primary">
               <Chip.Label>Feasting…</Chip.Label>
@@ -194,7 +249,9 @@ export function ImageCard({ item }: ImageCardProps) {
           <div className="absolute right-3 top-3 z-10">
             <Chip color="success" size="sm" variant="soft">
               <Eye className="size-3" />
-              <Chip.Label>Revealed</Chip.Label>
+              <Chip.Label>
+                {playStatus === "infested" ? "Infested" : "Revealed"}
+              </Chip.Label>
             </Chip>
           </div>
         )}
@@ -238,9 +295,10 @@ export function ImageCard({ item }: ImageCardProps) {
         {hasVanished && <ShareButtons item={item} />}
 
         <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
-          {phase === "intact" && (
+          {isActive && phase === "intact" && (
             <Button
               className="w-full sm:w-auto"
+              isDisabled={!hydrated}
               size="md"
               onPress={handleTap}
             >
@@ -249,7 +307,7 @@ export function ImageCard({ item }: ImageCardProps) {
             </Button>
           )}
 
-          {phase === "eating" && (
+          {isActive && phase === "eating" && (
             <Button
               isDisabled
               className="w-full sm:w-auto"
@@ -261,23 +319,20 @@ export function ImageCard({ item }: ImageCardProps) {
             </Button>
           )}
 
-          {hasVanished && (
-            <Button
-              className="w-full sm:w-auto"
-              size="md"
-              variant="secondary"
-              onPress={handleReset}
-            >
-              <ArrowRotateLeft />
-              Shoo them away
+          {isLocked && (
+            <Button isDisabled className="w-full sm:w-auto" size="md" variant="secondary">
+              <span className="text-base leading-none">🪳</span>
+              Locked
             </Button>
           )}
 
           <span className="text-xs text-white/50">
-            {phase === "intact" &&
+            {isLocked && "Complete earlier portraits to unlock."}
+            {isActive && phase === "intact" &&
               `Threshold: ${VANISH_THRESHOLD} taps before they feast`}
-            {phase === "eating" && "Hold on — the swarm is eating…"}
-            {hasVanished && "Image cleared — context revealed."}
+            {isActive && phase === "eating" && "Hold on — the swarm is eating…"}
+            {hasVanished && playStatus === "infested" && "Infested — next portrait unlocked."}
+            {hasVanished && isActive && "Image cleared — context revealed."}
           </span>
         </div>
       </div>
