@@ -1,7 +1,10 @@
 /** Per-card tap progress stored in the browser (survives server restarts). */
 
 const STORAGE_KEY = "ckrch:gallery-progress";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
+
+/** Each visitor gets exactly one tap per portrait (while it is active). */
+export const MAX_TAPS_PER_USER = 1;
 
 export type CardPhase = "intact" | "eating" | "vanished";
 
@@ -15,6 +18,7 @@ export type StoredRoach = {
 };
 
 export type CardProgress = {
+  clickUsed: boolean;
   clicks: number;
   phase: CardPhase;
   roaches: StoredRoach[];
@@ -54,11 +58,27 @@ function writeStore(store: ProgressStore): void {
   }
 }
 
+function normalizeProgress(entry: CardProgress): CardProgress {
+  const clickUsed =
+    entry.clickUsed === true || entry.clicks >= MAX_TAPS_PER_USER;
+  return { ...entry, clickUsed };
+}
+
+export function hasUsedTap(cardId: string): boolean {
+  return loadCardProgress(cardId)?.clickUsed === true;
+}
+
 export function loadCardProgress(cardId: string): CardProgress | null {
   const store = readStore();
   const entry = store.cards[cardId];
   if (!entry || typeof entry.clicks !== "number") return null;
-  return entry;
+  return normalizeProgress({
+    clickUsed: entry.clickUsed === true,
+    clicks: entry.clicks,
+    phase: entry.phase,
+    roaches: entry.roaches ?? [],
+    nextRoachId: entry.nextRoachId ?? 0,
+  });
 }
 
 export function saveCardProgress(
@@ -66,7 +86,7 @@ export function saveCardProgress(
   progress: CardProgress,
 ): void {
   const store = readStore();
-  store.cards[cardId] = progress;
+  store.cards[cardId] = normalizeProgress(progress);
   writeStore(store);
 }
 

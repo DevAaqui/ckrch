@@ -18,6 +18,9 @@
 # production
 /build
 
+# persisted global cockroach counts (dev/server)
+/data/cockroach-counts.json
+
 # misc
 .DS_Store
 *.pem

@@ -1,31 +1,43 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MutableRefObject,
+} from "react";
 import { Button, Card, Chip, Label, ProgressBar } from "@heroui/react";
 import { Eye, Sparkles } from "@gravity-ui/icons";
 
 import { Cockroach } from "@/components/Cockroach";
 import { ShareButtons } from "@/components/ShareButtons";
 import {
+  hasUsedTap,
   loadCardProgress,
+  MAX_TAPS_PER_USER,
   saveCardProgress,
   type CardPhase,
   type StoredRoach,
 } from "@/lib/card-progress";
+import { roachesForGlobalCount } from "@/lib/display-roaches";
 import type { CardPlayStatus } from "@/lib/gallery-progress";
+import { incrementGlobalRoachCount } from "@/lib/global-roaches-client";
 import type { GalleryItem } from "@/lib/images";
 import { VANISH_THRESHOLD } from "@/lib/images";
 
 type ImageCardProps = {
   item: GalleryItem;
   playStatus: CardPlayStatus;
+  globalCount: number;
+  onGlobalCountChange?: (cardId: string, count: number) => void;
   onInfested?: () => void;
 };
 
 type Roach = StoredRoach;
 
 const EATING_DURATION_MS = 1300;
-
 function spawnRoach(id: number): Roach {
   return {
     id,
@@ -37,22 +49,38 @@ function spawnRoach(id: number): Roach {
   };
 }
 
-function resolvePhaseFromStorage(
-  clicks: number,
-  storedPhase: CardPhase,
-): CardPhase {
-  if (clicks >= VANISH_THRESHOLD) return "vanished";
-  if (storedPhase === "eating") return "intact";
-  return storedPhase === "vanished" ? "vanished" : "intact";
+function resolvePhaseFromStorage(storedPhase: CardPhase): CardPhase {
+  if (storedPhase === "vanished" || storedPhase === "eating") return storedPhase;
+  return "intact";
 }
 
-export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
+function scheduleVanish(
+  onDone: () => void,
+  eatingTimeoutRef: MutableRefObject<number | null>,
+) {
+  if (eatingTimeoutRef.current !== null) {
+    window.clearTimeout(eatingTimeoutRef.current);
+  }
+  eatingTimeoutRef.current = window.setTimeout(() => {
+    onDone();
+    eatingTimeoutRef.current = null;
+  }, EATING_DURATION_MS);
+}
+
+export function ImageCard({
+  item,
+  playStatus,
+  globalCount,
+  onGlobalCountChange,
+  onInfested,
+}: ImageCardProps) {
   const [clicks, setClicks] = useState(0);
-  const [roaches, setRoaches] = useState<Roach[]>([]);
+  const [localRoaches, setLocalRoaches] = useState<Roach[]>([]);
   const [phase, setPhase] = useState<CardPhase>("intact");
   const [hydrated, setHydrated] = useState(false);
   const eatingTimeoutRef = useRef<number | null>(null);
   const nextRoachId = useRef(0);
+  const tappingRef = useRef(false);
 
   const persist = (
     nextClicks: number,
@@ -61,6 +89,7 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
     nextRoachIdValue: number,
   ) => {
     saveCardProgress(item.id, {
+      clickUsed: nextClicks >= MAX_TAPS_PER_USER,
       clicks: nextClicks,
       phase: nextPhase,
       roaches: nextRoaches,
@@ -68,10 +97,13 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
     });
   };
 
+  const tapConsumed =
+    clicks >= MAX_TAPS_PER_USER || (hydrated && hasUsedTap(item.id));
+
   useEffect(() => {
     if (playStatus === "locked") {
       setClicks(0);
-      setRoaches([]);
+      setLocalRoaches([]);
       setPhase("intact");
       nextRoachId.current = 0;
       setHydrated(true);
@@ -80,15 +112,19 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
 
     const stored = loadCardProgress(item.id);
     if (stored) {
-      const restoredPhase = resolvePhaseFromStorage(stored.clicks, stored.phase);
+      const restoredPhase = resolvePhaseFromStorage(stored.phase);
       setClicks(stored.clicks);
-      setRoaches(restoredPhase === "vanished" ? [] : stored.roaches);
-      setPhase(
-        playStatus === "infested" && restoredPhase !== "vanished"
-          ? "vanished"
-          : restoredPhase,
-      );
+      setLocalRoaches(restoredPhase === "vanished" ? [] : stored.roaches);
+      setPhase(playStatus === "infested" ? "vanished" : restoredPhase);
       nextRoachId.current = stored.nextRoachId;
+
+      if (playStatus === "active" && restoredPhase === "eating") {
+        scheduleVanish(() => {
+          setPhase("vanished");
+          persist(stored.clicks, [], "vanished", nextRoachId.current);
+          onInfested?.();
+        }, eatingTimeoutRef);
+      }
     } else if (playStatus === "infested") {
       setPhase("vanished");
     }
@@ -99,33 +135,48 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
         window.clearTimeout(eatingTimeoutRef.current);
       }
     };
-  }, [item.id, playStatus]);
+  }, [item.id, playStatus, onInfested]);
 
-  const remaining = Math.max(VANISH_THRESHOLD - clicks, 0);
-
-  const handleTap = () => {
-    if (!hydrated || playStatus !== "active" || phase !== "intact") return;
-
-    const nextCount = clicks + 1;
-    const newRoach = spawnRoach(nextRoachId.current++);
-    const nextRoaches = [...roaches, newRoach];
-
-    setClicks(nextCount);
-    setRoaches(nextRoaches);
-
-    if (nextCount >= VANISH_THRESHOLD) {
-      setPhase("eating");
-      persist(nextCount, nextRoaches, "eating", nextRoachId.current);
-      eatingTimeoutRef.current = window.setTimeout(() => {
-        setPhase("vanished");
-        persist(nextCount, [], "vanished", nextRoachId.current);
-        eatingTimeoutRef.current = null;
-        onInfested?.();
-      }, EATING_DURATION_MS);
+  const handleTap = async () => {
+    if (
+      !hydrated ||
+      playStatus !== "active" ||
+      phase !== "intact" ||
+      tappingRef.current ||
+      tapConsumed ||
+      hasUsedTap(item.id)
+    ) {
       return;
     }
 
+    tappingRef.current = true;
+
+    try {
+      const nextGlobal = await incrementGlobalRoachCount(item.id);
+      onGlobalCountChange?.(item.id, nextGlobal);
+    } catch {
+      /* still run local feast if API fails */
+    }
+
+    const nextCount = clicks + 1;
+    const newRoach = spawnRoach(nextRoachId.current++);
+    const nextRoaches = [...localRoaches, newRoach];
+
+    setClicks(nextCount);
+    setLocalRoaches(nextRoaches);
     persist(nextCount, nextRoaches, "intact", nextRoachId.current);
+
+    if (nextCount >= VANISH_THRESHOLD) {
+      window.setTimeout(() => {
+        setPhase("eating");
+        persist(nextCount, nextRoaches, "eating", nextRoachId.current);
+        scheduleVanish(() => {
+          setPhase("vanished");
+          persist(nextCount, [], "vanished", nextRoachId.current);
+          onInfested?.();
+        }, eatingTimeoutRef);
+      }, 450);
+    }
   };
 
   const imageStageClass = useMemo(() => {
@@ -135,9 +186,15 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
   }, [phase]);
 
   const hasVanished = playStatus === "infested" || phase === "vanished";
-  const showRoaches = playStatus === "active" && phase !== "vanished";
   const isLocked = playStatus === "locked";
   const isActive = playStatus === "active";
+
+  const displayRoaches = useMemo(
+    () => roachesForGlobalCount(item.id, globalCount),
+    [item.id, globalCount],
+  );
+
+  const showRoaches = !hasVanished && displayRoaches.length > 0;
 
   const cardRingClass =
     playStatus === "active"
@@ -158,8 +215,9 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
         {!hasVanished ? (
           <img
             alt={item.title}
-            className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] ${phase === "eating" ? "image-eaten" : ""
-              }`}
+            className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] ${
+              phase === "eating" ? "image-eaten" : ""
+            }`}
             draggable={false}
             loading="lazy"
             src={item.src}
@@ -182,7 +240,7 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
         )}
 
         {showRoaches &&
-          roaches.map((roach) => {
+          displayRoaches.map((roach) => {
             const anchorStyle = {
               "--x": `${roach.x}%`,
               "--y": `${roach.y}%`,
@@ -197,7 +255,7 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
 
             return (
               <span
-                key={roach.id}
+                key={`${item.id}-roach-${roach.id}`}
                 className="roach-anchor"
                 style={anchorStyle}
               >
@@ -219,28 +277,29 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
           </div>
         )}
 
-        {isActive && phase === "intact" && (
-          <div className="absolute left-3 top-3 z-10">
+        <div className="absolute left-3 top-3 z-10 flex flex-col gap-1">
+          {isActive && phase === "intact" && !tapConsumed && (
             <Chip color="warning" size="sm" variant="primary">
-              <Chip.Label>Active — tap to infest</Chip.Label>
+              <Chip.Label>Active — one tap only</Chip.Label>
             </Chip>
-          </div>
-        )}
-
-        {isActive && phase === "intact" && remaining > 0 && clicks > 0 && (
-          <div className="absolute right-3 top-3 z-10">
-            <Chip color="accent" size="sm" variant="soft">
+          )}
+          {globalCount > 0 && (
+            <Chip color="danger" size="sm" variant="soft">
               <Chip.Label>
-                {remaining} tap{remaining === 1 ? "" : "s"} to feast
+                {globalCount} 🪳 worldwide
               </Chip.Label>
             </Chip>
-          </div>
-        )}
+          )}
+        </div>
 
-        {isActive && phase === "eating" && (
+        {phase !== "vanished" && (clicks > 0 || globalCount > 0) && (
           <div className="absolute right-3 top-3 z-10">
-            <Chip color="danger" size="sm" variant="primary">
-              <Chip.Label>Feasting…</Chip.Label>
+            <Chip color="danger" size="sm" variant="soft">
+              <Chip.Label>
+                {phase === "eating"
+                  ? "Feasting…"
+                  : `${Math.max(globalCount, clicks)} 🪳 on photo`}
+              </Chip.Label>
             </Chip>
           </div>
         )}
@@ -281,10 +340,10 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
                 ? "Image consumed"
                 : phase === "eating"
                   ? "Feasting in progress"
-                  : "Cockroaches summoned"}
+                  : "Your tap on this device"}
             </Label>
             <span className="text-xs tabular-nums text-white/60">
-              {Math.min(clicks, VANISH_THRESHOLD)} / {VANISH_THRESHOLD}
+              {globalCount} global · {Math.min(clicks, VANISH_THRESHOLD)} you
             </span>
           </div>
           <ProgressBar.Track className="bg-white/10">
@@ -295,15 +354,15 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
         {hasVanished && <ShareButtons item={item} />}
 
         <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
-          {isActive && phase === "intact" && (
+          {isActive && phase === "intact" && !tapConsumed && (
             <Button
               className="w-full sm:w-auto"
               isDisabled={!hydrated}
               size="md"
-              onPress={handleTap}
+              onPress={() => void handleTap()}
             >
               <span className="text-base leading-none">🪳</span>
-              Summon a cockroach
+              Summon the swarm (1 tap)
             </Button>
           )}
 
@@ -328,11 +387,14 @@ export function ImageCard({ item, playStatus, onInfested }: ImageCardProps) {
 
           <span className="text-xs text-white/50">
             {isLocked && "Complete earlier portraits to unlock."}
-            {isActive && phase === "intact" &&
-              `Threshold: ${VANISH_THRESHOLD} taps before they feast`}
+            {isActive &&
+              phase === "intact" &&
+              !tapConsumed &&
+              "One tap adds 1 roach for everyone — synced across devices."}
             {isActive && phase === "eating" && "Hold on — the swarm is eating…"}
-            {hasVanished && playStatus === "infested" && "Infested — next portrait unlocked."}
-            {hasVanished && isActive && "Image cleared — context revealed."}
+            {hasVanished &&
+              playStatus === "infested" &&
+              "Infested — next portrait unlocked."}
           </span>
         </div>
       </div>

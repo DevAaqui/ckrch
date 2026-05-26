@@ -35,12 +35,11 @@ export default function HomePage() {
           <p className="max-w-2xl text-pretty text-sm leading-relaxed text-white/70 sm:text-base">
             Infest portraits{" "}
             <span className="font-medium text-white">one at a time</span> — only
-            the active card accepts taps. Summon{" "}
-            <span className="font-medium text-white">
-              {VANISH_THRESHOLD} cockroaches
-            </span>{" "}
-            to devour it; then the next unlocks. The rest stay locked until
-            their turn.
+            the active card is clickable, and you get{" "}
+            <span className="font-medium text-white">one tap per picture</span>.
+            That tap adds a roach for{" "}
+            <span className="font-medium text-white">every device</span> (saved on
+            the server). Then the next portrait unlocks.
           </p>
         </div>
       </header>
