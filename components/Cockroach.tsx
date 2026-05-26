@@ -4,13 +4,13 @@ import { Icon, loadIcon } from "@iconify/react";
 import type { CSSProperties } from "react";
 
 /**
- * Renders a high-quality cockroach SVG sourced from the
- * Microsoft Fluent Emoji Flat icon set via Iconify.
+ * Renders a glossy cockroach SVG via Iconify (Noto emoji set).
+ * Darkening / shine tweaks live on `.roach-glyph` in globals.css.
  *
  * Swap the `icon` string to try other styles:
- *   - "fluent-emoji-flat:cockroach"  (default — flat color)
+ *   - "noto:cockroach"               (default — glossy)
  *   - "fluent-emoji:cockroach"       (3D color)
- *   - "noto:cockroach"               (Google Noto, glossy)
+ *   - "fluent-emoji-flat:cockroach"  (flat, low gloss)
  *   - "twemoji:cockroach"            (Twitter Twemoji)
  *   - "openmoji:cockroach"           (OpenMoji)
  *
@@ -22,7 +22,7 @@ type CockroachProps = {
   style?: CSSProperties;
 };
 
-const COCKROACH_ICON = "fluent-emoji-flat:cockroach";
+const COCKROACH_ICON = "noto:cockroach";
 
 // Eagerly start fetching the icon JSON the moment this module loads, so the
 // first cockroach the user summons appears instantly instead of after the
