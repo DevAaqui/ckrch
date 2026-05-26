@@ -15,20 +15,28 @@ export default function HomePage() {
             <Sparkles className="size-3" />
             <Chip.Label>HeroUI v3 · Tailwind v4 · Next.js</Chip.Label>
           </Chip>
+          <Chip color="danger" size="sm" variant="soft">
+            <Chip.Label>🪳 Infestation mode</Chip.Label>
+          </Chip>
         </div>
 
         <div className="flex flex-col gap-3">
           <h1 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Vanish Gallery
+            The Cockroach Gallery
           </h1>
           <p className="max-w-2xl text-pretty text-sm leading-relaxed text-white/70 sm:text-base">
-            Tap any image{" "}
+            Every tap on an image{" "}
+            <span className="font-medium text-white">summons a cockroach</span>{" "}
+            that scuttles onto the photo. Reach{" "}
             <span className="font-medium text-white">
-              {VANISH_THRESHOLD} times
+              {VANISH_THRESHOLD} cockroaches
             </span>{" "}
-            to make it fade away. Once it&apos;s gone, the image is cleared and
-            a hidden context takes its place. Try it on your phone — every card
-            is fully responsive.
+            and the swarm converges to{" "}
+            <span className="font-medium text-rose-300">
+              eat the image alive
+            </span>{" "}
+            — revealing a hidden message underneath. Fully responsive. Tap with
+            caution.
           </p>
         </div>
       </header>
@@ -45,7 +53,7 @@ export default function HomePage() {
       <footer className="mt-4 flex flex-col items-center gap-1 pb-4 pt-2 text-center text-xs text-white/40 sm:text-sm">
         <p>
           Built with HeroUI v3, Tailwind CSS v4, and Next.js. Mobile responsive
-          by design.
+          by design. No real cockroaches were harmed.
         </p>
       </footer>
     </main>

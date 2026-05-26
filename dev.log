@@ -8,8 +8,10 @@ npm warn Unknown env config "devdir". This will stop working in the next major v
    - Network:      http://10.116.100.110:3000
 
  ✓ Starting...
- ✓ Ready in 2.3s
+ ✓ Ready in 2.1s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
  ○ Compiling / ...
- ✓ Compiled / in 7.5s (5492 modules)
- GET / 200 in 7872ms
- GET / 200 in 7633ms
+ ✓ Compiled / in 7.2s (5494 modules)
+ GET / 200 in 3659ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET / 200 in 7678ms

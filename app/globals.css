@@ -21,3 +21,132 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* ---------- Cockroach choreography ---------- */
+
+@keyframes roach-spawn {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--rot, 0deg)) scale(0);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg)) scale(1.45);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg)) scale(1);
+  }
+}
+
+@keyframes roach-scuttle {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-3px, 2px);
+  }
+  40% {
+    transform: translate(2px, -3px);
+  }
+  60% {
+    transform: translate(-2px, 3px);
+  }
+  80% {
+    transform: translate(3px, -2px);
+  }
+}
+
+@keyframes roach-chomp {
+  0%,
+  100% {
+    transform: rotate(var(--rot, 0deg)) scale(1.05);
+  }
+  50% {
+    transform: rotate(var(--rot, 0deg)) scale(1.55);
+  }
+}
+
+@keyframes image-eaten {
+  0% {
+    opacity: 1;
+    filter: saturate(1) blur(0);
+    transform: scale(1);
+  }
+  35% {
+    opacity: 0.85;
+    filter: saturate(0.7) blur(1.5px) hue-rotate(-10deg);
+    transform: scale(0.96);
+  }
+  70% {
+    opacity: 0.35;
+    filter: saturate(0.3) blur(6px) hue-rotate(-25deg);
+    transform: scale(0.72);
+  }
+  100% {
+    opacity: 0;
+    filter: saturate(0) blur(14px) hue-rotate(-40deg);
+    transform: scale(0.4);
+  }
+}
+
+@keyframes reveal-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.roach-anchor {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translate(calc(-50% + var(--tx, 0%)), calc(-50% + var(--ty, 0%)));
+  transition:
+    transform 900ms cubic-bezier(0.65, 0, 0.35, 1.2),
+    opacity 400ms ease-out;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.roach-wiggle {
+  display: block;
+  animation: roach-scuttle 1.4s ease-in-out infinite;
+  animation-delay: var(--scuttle-delay, 0s);
+  transform-origin: center;
+}
+
+.roach-glyph {
+  display: block;
+  width: var(--size, 2rem);
+  height: var(--size, 2rem);
+  margin-left: calc(var(--size, 2rem) * -0.5);
+  margin-top: calc(var(--size, 2rem) * -0.5);
+  animation: roach-spawn 480ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+  transform: rotate(var(--rot, 0deg));
+  will-change: transform;
+}
+
+/* Eating phase: roaches converge to image center and pulse-chomp. */
+.is-eating .roach-anchor {
+  transform: translate(-50%, -50%);
+}
+.is-eating .roach-glyph {
+  animation: roach-chomp 260ms ease-in-out infinite;
+}
+
+.image-eaten {
+  animation: image-eaten 1300ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.reveal-pane {
+  animation: reveal-fade-in 500ms ease-out both;
+}
