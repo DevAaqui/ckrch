@@ -25,3 +25,21 @@ npm warn Unknown env config "devdir". This will stop working in the next major v
  GET / 200 in 24ms
  GET / 200 in 168ms
  GET / 200 in 64ms
+ ✓ Compiled in 932ms (5494 modules)
+ GET / 200 in 81ms
+ GET / 200 in 143ms
+ GET / 200 in 71ms
+ ✓ Compiled in 650ms (2706 modules)
+ GET / 200 in 29ms
+ ✓ Compiled in 1486ms (5496 modules)
+ GET / 200 in 71ms
+ GET / 200 in 135ms
+ ✓ Compiled in 540ms (5496 modules)
+ GET / 200 in 215ms
+ ✓ Compiled in 401ms (5496 modules)
+ GET / 200 in 50ms
+ GET / 200 in 129ms
+ GET / 200 in 65ms
+ ✓ Compiled in 461ms (2707 modules)
+ GET / 200 in 24ms
+ GET / 200 in 89ms

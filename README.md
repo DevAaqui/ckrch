@@ -8,7 +8,8 @@ A mobile-responsive Next.js demo where **every tap summons a cockroach** that sc
 - **Tailwind CSS v4** (PostCSS plugin)
 - **HeroUI v3 beta** (`@heroui/react` + `@heroui/styles`)
 - **@gravity-ui/icons** for UI icons
-- Custom **inline SVG cockroach** + CSS keyframe animations (no animation lib needed)
+- **@iconify/react** for the cockroach itself (Microsoft Fluent Emoji Flat — `fluent-emoji-flat:cockroach`)
+- CSS keyframe animations (no animation library needed)
 
 ## Getting started
 
