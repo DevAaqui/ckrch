@@ -5,6 +5,7 @@ import { Button, Card, Chip, Label, ProgressBar } from "@heroui/react";
 import { ArrowRotateLeft, Eye, Sparkles } from "@gravity-ui/icons";
 
 import { Cockroach } from "@/components/Cockroach";
+import { ShareButtons } from "@/components/ShareButtons";
 import type { GalleryItem } from "@/lib/images";
 import { VANISH_THRESHOLD } from "@/lib/images";
 
@@ -94,6 +95,7 @@ export function ImageCard({ item }: ImageCardProps) {
 
   return (
     <Card
+      id={item.id}
       className="group relative flex h-full flex-col overflow-hidden border border-white/10 bg-white/[0.04] p-0 backdrop-blur-sm transition-shadow hover:shadow-xl"
       variant="transparent"
     >
@@ -232,6 +234,8 @@ export function ImageCard({ item }: ImageCardProps) {
             <ProgressBar.Fill />
           </ProgressBar.Track>
         </ProgressBar>
+
+        {hasVanished && <ShareButtons item={item} />}
 
         <div className="mt-auto flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
           {phase === "intact" && (

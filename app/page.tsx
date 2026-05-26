@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Chip } from "@heroui/react";
 import { Sparkles } from "@gravity-ui/icons";
 
@@ -7,6 +8,13 @@ import { ImageCard } from "@/components/ImageCard";
 import { galleryItems, VANISH_THRESHOLD } from "@/lib/images";
 
 export default function HomePage() {
+  useEffect(() => {
+    const cardId = new URLSearchParams(window.location.search).get("card");
+    if (!cardId) return;
+    document
+      .getElementById(cardId)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <header className="flex flex-col gap-4">
