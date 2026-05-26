@@ -130,8 +130,8 @@ export function ImageCard({ item }: ImageCardProps) {
         {showRoaches &&
           roaches.map((roach) => {
             const anchorStyle = {
-              "--tx": `${roach.x - 50}%`,
-              "--ty": `${roach.y - 50}%`,
+              "--x": `${roach.x}%`,
+              "--y": `${roach.y}%`,
             } as CSSProperties;
             const wiggleStyle = {
               "--scuttle-delay": `${roach.scuttleDelay}s`,

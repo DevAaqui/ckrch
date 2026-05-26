@@ -83,7 +83,7 @@ next.config.ts      # remote image hosts + outputFileTracingRoot
 
 ## Notes on the implementation
 
-- Each cockroach is positioned via a CSS custom property pair `--tx` / `--ty`, expressed as an offset from the image center. To converge them on "eating", we just override the transform on `.is-eating .roach-anchor` to `translate(-50%, -50%)` — the CSS transition handles the smooth motion.
+- Each cockroach is positioned via CSS custom properties `--x` / `--y` (percentages of the image container). To converge them on "eating", we just override `.is-eating .roach-anchor` to `left: 50%; top: 50%` — the CSS transition on `left`/`top` handles the smooth motion. Percentages on `left`/`top` resolve against the **containing block**, which is the image; this is the key difference from `transform: translate(X%, Y%)` (which resolves against the element's own box) — and was the cause of an early bug where every roach stacked at the center.
 - The rotation is held in a separate `--rot` custom property on the inner glyph, so it survives across spawn / scuttle / chomp without conflict.
 - Re-clicks during the eating or vanished phase are no-ops; "Shoo them away" resets state and clears the roach swarm.
 
