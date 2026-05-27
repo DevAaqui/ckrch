@@ -2,22 +2,71 @@
 @import "@heroui/styles";
 
 @layer base {
+  :root {
+    color-scheme: dark;
+
+    /* Cockroach palette — earthy browns, amber shell, warm cream text */
+    --background: oklch(14% 0.035 55);
+    --foreground: oklch(93% 0.04 85);
+
+    --surface: oklch(20% 0.045 52);
+    --surface-foreground: oklch(91% 0.04 82);
+    --surface-secondary: oklch(24% 0.045 50);
+    --surface-secondary-foreground: oklch(91% 0.04 82);
+    --surface-tertiary: oklch(28% 0.04 48);
+    --surface-tertiary-foreground: oklch(91% 0.04 82);
+
+    --overlay: oklch(22% 0.045 52);
+    --overlay-foreground: oklch(93% 0.04 85);
+
+    --muted: oklch(68% 0.04 72);
+
+    --default: oklch(26% 0.04 52);
+    --default-foreground: oklch(91% 0.04 82);
+
+    --accent: oklch(58% 0.14 68);
+    --accent-foreground: oklch(16% 0.04 52);
+
+    --success: oklch(52% 0.11 145);
+    --success-foreground: oklch(93% 0.04 85);
+
+    --warning: oklch(72% 0.16 75);
+    --warning-foreground: oklch(18% 0.04 52);
+
+    --danger: oklch(52% 0.17 35);
+    --danger-foreground: oklch(93% 0.04 85);
+
+    --segment: oklch(30% 0.04 52);
+    --segment-foreground: oklch(91% 0.04 82);
+
+    --border: oklch(32% 0.04 55);
+    --separator: oklch(28% 0.035 55);
+    --focus: var(--accent);
+    --link: oklch(78% 0.12 75);
+
+    --field-background: oklch(22% 0.04 52);
+    --field-foreground: var(--foreground);
+
+    --surface-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.35);
+    --overlay-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.45);
+  }
+
   html,
   body {
     min-height: 100vh;
     background:
       radial-gradient(
         1200px 600px at 80% -10%,
-        rgba(168, 85, 247, 0.18),
+        rgba(180, 110, 30, 0.14),
         transparent 60%
       ),
       radial-gradient(
         900px 500px at -10% 10%,
-        rgba(59, 130, 246, 0.18),
+        rgba(90, 55, 20, 0.2),
         transparent 60%
       ),
-      var(--color-background, #0b0b10);
-    color: var(--color-foreground, #f5f5f7);
+      var(--background);
+    color: var(--foreground);
     -webkit-font-smoothing: antialiased;
   }
 }

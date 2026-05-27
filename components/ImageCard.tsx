@@ -198,16 +198,16 @@ export function ImageCard({
 
   const cardRingClass =
     playStatus === "active"
-      ? "ring-2 ring-amber-400/70 shadow-amber-900/20"
+      ? "ring-2 ring-amber-500/60 shadow-amber-950/30"
       : playStatus === "infested"
-        ? "ring-2 ring-emerald-500/40"
+        ? "ring-2 ring-emerald-600/40"
         : "opacity-55 saturate-[0.65]";
 
   return (
     <Card
       id={item.id}
-      className={`group relative flex w-full flex-col overflow-hidden border border-white/10 bg-white/[0.04] p-0 backdrop-blur-sm transition-all hover:shadow-xl ${cardRingClass}`}
-      variant="transparent"
+      className={`group relative flex w-full flex-col overflow-hidden border border-border bg-surface p-0 transition-all hover:shadow-xl ${cardRingClass}`}
+      variant="default"
     >
       <div
         className={`relative aspect-[4/3] w-full overflow-hidden ${imageStageClass}`}
@@ -223,17 +223,17 @@ export function ImageCard({
             src={item.src}
           />
         ) : (
-          <div className="reveal-pane absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-amber-900/50 via-zinc-900/70 to-stone-900/80 p-6 text-center">
-            <div className="rounded-full border border-white/20 bg-white/10 p-3 text-white shadow-lg backdrop-blur">
+          <div className="reveal-pane absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-amber-950/80 via-stone-900/90 to-stone-950 p-6 text-center">
+            <div className="rounded-full border border-amber-700/40 bg-amber-950/50 p-3 text-amber-100 shadow-lg backdrop-blur">
               <Sparkles className="size-6" />
             </div>
-            <p className="text-balance text-base font-medium leading-snug text-white sm:text-lg">
+            <p className="text-balance text-base font-medium leading-snug text-amber-50 sm:text-lg">
               &ldquo;{item.revealQuote}&rdquo;
             </p>
-            <p className="text-xs uppercase tracking-wider text-white/70">
+            <p className="text-xs uppercase tracking-wider text-amber-200/80">
               — {item.revealAuthor}
             </p>
-            <p className="mt-2 text-[11px] text-white/50">
+            <p className="mt-2 text-[11px] text-amber-200/60">
               The roaches devoured the image whole.
             </p>
           </div>
@@ -271,7 +271,7 @@ export function ImageCard({
             <Chip color="default" size="sm" variant="soft">
               <Chip.Label>Locked</Chip.Label>
             </Chip>
-            <p className="max-w-[14rem] text-xs text-white/75">
+            <p className="max-w-[14rem] text-xs text-amber-100/85">
               Infest the previous portrait first.
             </p>
           </div>
@@ -318,10 +318,10 @@ export function ImageCard({
 
       <div className="flex flex-col gap-3 p-4 sm:p-5">
         <div className="flex flex-col gap-1">
-          <Card.Title className="text-base text-white sm:text-lg">
+          <Card.Title className="text-base sm:text-lg">
             {item.title}
           </Card.Title>
-          <Card.Description className="text-xs text-white/60 sm:text-sm">
+          <Card.Description className="text-xs sm:text-sm">
             {item.subtitle}
           </Card.Description>
         </div>
@@ -329,24 +329,24 @@ export function ImageCard({
         <ProgressBar
           aria-label={`Cockroach swarm progress for ${item.title}`}
           className="w-full"
-          color={hasVanished ? "success" : phase === "eating" ? "danger" : "accent"}
+          color={hasVanished ? "success" : phase === "eating" ? "danger" : "warning"}
           maxValue={VANISH_THRESHOLD}
           size="sm"
           value={Math.min(clicks, VANISH_THRESHOLD)}
         >
           <div className="flex items-center justify-between">
-            <Label className="text-xs text-white/60">
+            <Label className="text-xs text-muted">
               {hasVanished
                 ? "Image consumed"
                 : phase === "eating"
                   ? "Feasting in progress"
                   : "Your tap on this device"}
             </Label>
-            <span className="text-xs tabular-nums text-white/60">
+            <span className="text-xs tabular-nums text-muted">
               {globalCount} global · {Math.min(clicks, VANISH_THRESHOLD)} you
             </span>
           </div>
-          <ProgressBar.Track className="bg-white/10">
+          <ProgressBar.Track className="bg-default">
             <ProgressBar.Fill />
           </ProgressBar.Track>
         </ProgressBar>
@@ -357,6 +357,7 @@ export function ImageCard({
           {isActive && phase === "intact" && !tapConsumed && (
             <Button
               className="w-full sm:w-auto"
+              color="warning"
               isDisabled={!hydrated}
               size="md"
               onPress={() => void handleTap()}
@@ -385,7 +386,7 @@ export function ImageCard({
             </Button>
           )}
 
-          <span className="text-xs text-white/50">
+          <span className="text-xs text-muted">
             {isLocked && "Complete earlier portraits to unlock."}
             {isActive &&
               phase === "intact" &&

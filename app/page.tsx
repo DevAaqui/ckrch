@@ -29,16 +29,16 @@ export default function HomePage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h1 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             The Cockroach Gallery
           </h1>
-          <p className="max-w-2xl text-pretty text-sm leading-relaxed text-white/70 sm:text-base">
+          <p className="max-w-2xl text-pretty text-sm leading-relaxed text-muted sm:text-base">
             Infest portraits{" "}
-            <span className="font-medium text-white">one at a time</span> — only
+            <span className="font-medium text-foreground">one at a time</span> — only
             the active card is clickable, and you get{" "}
-            <span className="font-medium text-white">one tap per picture</span>.
+            <span className="font-medium text-foreground">one tap per picture</span>.
             That tap adds a roach for{" "}
-            <span className="font-medium text-white">every device</span> (saved on
+            <span className="font-medium text-foreground">every device</span> (saved on
             the server). Then the next portrait unlocks.
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function HomePage() {
         <GalleryGrid />
       </section>
 
-      <footer className="mt-4 flex flex-col items-center gap-1 pb-4 pt-2 text-center text-xs text-white/40 sm:text-sm">
+      <footer className="mt-4 flex flex-col items-center gap-1 pb-4 pt-2 text-center text-xs text-muted/70 sm:text-sm">
         <p>
           Built with HeroUI v3, Tailwind CSS v4, and Next.js. Mobile responsive
           by design. No real cockroaches were harmed.

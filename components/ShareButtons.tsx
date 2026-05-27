@@ -101,12 +101,12 @@ export function ShareButtons({ item }: ShareButtonsProps) {
   );
 
   return (
-    <div className="flex w-full flex-col gap-3 border-t border-white/10 pt-3">
+    <div className="flex w-full flex-col gap-3 border-t border-border pt-3">
       <div className="flex flex-col gap-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-white/50">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted">
           Share infested image
         </p>
-        <p className="text-[11px] text-white/40">
+        <p className="text-[11px] text-muted/80">
           {onDesktop
             ? "Swarmed with cockroaches — drag into WhatsApp Web or paste with Ctrl+V."
             : "Cockroach-swarmed card — tap WhatsApp, then pick WhatsApp in the share menu."}
@@ -117,13 +117,13 @@ export function ShareButtons({ item }: ShareButtonsProps) {
         <div className="flex flex-col gap-1.5">
           <img
             alt={`Share preview for ${item.title}`}
-            className="w-full cursor-grab rounded-lg border border-white/15 object-cover shadow-lg active:cursor-grabbing"
+            className="w-full cursor-grab rounded-lg border border-border object-cover shadow-lg active:cursor-grabbing"
             draggable
             src={previewUrl}
             title="Cockroach-infested — drag into WhatsApp Web"
           />
           {onDesktop && (
-            <p className="text-[10px] text-white/35">
+            <p className="text-[10px] text-muted/70">
               Tip: drag this preview onto an open WhatsApp Web chat.
             </p>
           )}
@@ -193,7 +193,7 @@ export function ShareButtons({ item }: ShareButtonsProps) {
         </Button>
       </div>
       {status && (
-        <p className="text-[11px] leading-relaxed text-amber-200/80" role="status">
+        <p className="text-[11px] leading-relaxed text-warning" role="status">
           {status}
         </p>
       )}
