@@ -1,7 +1,5 @@
 import type { StoredRoach } from "@/lib/card-progress";
 
-const MAX_VISIBLE_ROACHES = 30;
-
 function seededRandom(seed: string): () => number {
   let h = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -19,7 +17,7 @@ export function roachesForGlobalCount(
   cardId: string,
   count: number,
 ): StoredRoach[] {
-  const total = Math.min(Math.max(0, count), MAX_VISIBLE_ROACHES);
+  const total = Math.max(0, count);
 
   return Array.from({ length: total }, (_, id) => {
     const rand = seededRandom(`${cardId}:roach:${id}`);
@@ -39,5 +37,3 @@ export function roachesForGlobalCount(
     };
   });
 }
-
-export { MAX_VISIBLE_ROACHES };

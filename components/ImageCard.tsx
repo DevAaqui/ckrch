@@ -38,16 +38,6 @@ type ImageCardProps = {
 type Roach = StoredRoach;
 
 const EATING_DURATION_MS = 1300;
-function spawnRoach(id: number): Roach {
-  return {
-    id,
-    x: 8 + Math.random() * 84,
-    y: 12 + Math.random() * 76,
-    rotation: Math.random() * 360,
-    size: 1.6 + Math.random() * 1.1,
-    scuttleDelay: Math.random() * 1.2,
-  };
-}
 
 function resolvePhaseFromStorage(storedPhase: CardPhase): CardPhase {
   if (storedPhase === "vanished" || storedPhase === "eating") return storedPhase;
@@ -79,6 +69,7 @@ export function ImageCard({
   const [phase, setPhase] = useState<CardPhase>("intact");
   const [hydrated, setHydrated] = useState(false);
   const eatingTimeoutRef = useRef<number | null>(null);
+  const eatingScheduledRef = useRef(false);
   const nextRoachId = useRef(0);
   const tappingRef = useRef(false);
 
@@ -137,6 +128,21 @@ export function ImageCard({
     };
   }, [item.id, playStatus, onInfested]);
 
+  const startEatingPhase = (tapCount: number) => {
+    if (eatingScheduledRef.current) return;
+    eatingScheduledRef.current = true;
+
+    window.setTimeout(() => {
+      setPhase("eating");
+      persist(tapCount, localRoaches, "eating", nextRoachId.current);
+      scheduleVanish(() => {
+        setPhase("vanished");
+        persist(tapCount, [], "vanished", nextRoachId.current);
+        onInfested?.();
+      }, eatingTimeoutRef);
+    }, 450);
+  };
+
   const handleTap = async () => {
     if (
       !hydrated ||
@@ -151,33 +157,34 @@ export function ImageCard({
 
     tappingRef.current = true;
 
+    let nextGlobal = globalCount;
     try {
-      const nextGlobal = await incrementGlobalRoachCount(item.id);
+      nextGlobal = await incrementGlobalRoachCount(item.id);
       onGlobalCountChange?.(item.id, nextGlobal);
     } catch {
-      /* still run local feast if API fails */
+      tappingRef.current = false;
+      return;
     }
 
     const nextCount = clicks + 1;
-    const newRoach = spawnRoach(nextRoachId.current++);
-    const nextRoaches = [...localRoaches, newRoach];
-
     setClicks(nextCount);
-    setLocalRoaches(nextRoaches);
-    persist(nextCount, nextRoaches, "intact", nextRoachId.current);
+    persist(nextCount, localRoaches, "intact", nextRoachId.current);
 
-    if (nextCount >= VANISH_THRESHOLD) {
-      window.setTimeout(() => {
-        setPhase("eating");
-        persist(nextCount, nextRoaches, "eating", nextRoachId.current);
-        scheduleVanish(() => {
-          setPhase("vanished");
-          persist(nextCount, [], "vanished", nextRoachId.current);
-          onInfested?.();
-        }, eatingTimeoutRef);
-      }, 450);
+    if (nextGlobal >= VANISH_THRESHOLD) {
+      startEatingPhase(nextCount);
     }
   };
+
+  useEffect(() => {
+    if (
+      playStatus !== "active" ||
+      phase !== "intact" ||
+      globalCount < VANISH_THRESHOLD
+    ) {
+      return;
+    }
+    startEatingPhase(clicks);
+  }, [globalCount, playStatus, phase, clicks]);
 
   const imageStageClass = useMemo(() => {
     if (phase === "eating") return "is-eating";
@@ -194,16 +201,7 @@ export function ImageCard({
     [item.id, globalCount],
   );
 
-  const infestationPercent = useMemo(
-    () =>
-      Math.min(
-        100,
-        Math.round(
-          (Math.min(globalCount, VANISH_THRESHOLD) / VANISH_THRESHOLD) * 100,
-        ),
-      ),
-    [globalCount],
-  );
+  const roachCount = Math.min(globalCount, VANISH_THRESHOLD);
 
   const showRoaches = !hasVanished && displayRoaches.length > 0;
 
@@ -294,26 +292,17 @@ export function ImageCard({
               <Chip.Label>Active — one tap only</Chip.Label>
             </Chip>
           )}
-          {/* {globalCount > 0 && (
-            <Chip color="danger" size="sm" variant="soft">
-              <Chip.Label>
-                {globalCount} 🪳 worldwide
-              </Chip.Label>
-            </Chip>
-          )} */}
         </div>
 
-        {/* {phase !== "vanished" && (clicks > 0 || globalCount > 0) && (
+        {phase !== "vanished" && globalCount > 0 && (
           <div className="absolute right-3 top-3 z-10">
             <Chip color="danger" size="sm" variant="soft">
               <Chip.Label>
-                {phase === "eating"
-                  ? "Feasting…"
-                  : `${Math.max(globalCount, clicks)} 🪳 on photo`}
+                {phase === "eating" ? "Feasting…" : `${roachCount} 🪳`}
               </Chip.Label>
             </Chip>
           </div>
-        )} */}
+        )}
 
         {hasVanished && (
           <div className="absolute right-3 top-3 z-10">
@@ -348,10 +337,10 @@ export function ImageCard({
           <div className="flex items-center justify-between">
             <Label className="text-xs text-muted">
               {hasVanished
-                ? "Image consumed · 100%"
+                ? `Image consumed · ${roachCount} 🪳`
                 : phase === "eating"
-                  ? `Feasting in progress · ${infestationPercent}%`
-                  : `Tap to infest · ${infestationPercent}%`}
+                  ? `Feasting in progress · ${roachCount} 🪳`
+                  : `Tap to infest · ${roachCount} 🪳`}
             </Label>
           </div>
           <ProgressBar.Track className="bg-default">
