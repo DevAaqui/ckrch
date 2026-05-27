@@ -13,7 +13,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "kumar-vishwas",
     title: "Dr. Kumar Vishwas",
-    subtitle: "Hindi poet · Ram-bhakt · founding member, AAP (former)",
+    subtitle: "Farzi poet · Nikala Gaya member, AAP (former)",
     src: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Kumar_Vishwas_%28Poet%29.jpg",
     revealQuote:
       "Koi deewana kehta hai, koi pagal samajhta hai — hum kehte hain: pehle mic band karo, phir party badlo. Cockroach Janta Party is not auditioning for your kavi sammelan.",
