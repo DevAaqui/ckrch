@@ -194,6 +194,17 @@ export function ImageCard({
     [item.id, globalCount],
   );
 
+  const infestationPercent = useMemo(
+    () =>
+      Math.min(
+        100,
+        Math.round(
+          (Math.min(globalCount, VANISH_THRESHOLD) / VANISH_THRESHOLD) * 100,
+        ),
+      ),
+    [globalCount],
+  );
+
   const showRoaches = !hasVanished && displayRoaches.length > 0;
 
   const cardRingClass =
@@ -283,16 +294,16 @@ export function ImageCard({
               <Chip.Label>Active — one tap only</Chip.Label>
             </Chip>
           )}
-          {globalCount > 0 && (
+          {/* {globalCount > 0 && (
             <Chip color="danger" size="sm" variant="soft">
               <Chip.Label>
                 {globalCount} 🪳 worldwide
               </Chip.Label>
             </Chip>
-          )}
+          )} */}
         </div>
 
-        {phase !== "vanished" && (clicks > 0 || globalCount > 0) && (
+        {/* {phase !== "vanished" && (clicks > 0 || globalCount > 0) && (
           <div className="absolute right-3 top-3 z-10">
             <Chip color="danger" size="sm" variant="soft">
               <Chip.Label>
@@ -302,7 +313,7 @@ export function ImageCard({
               </Chip.Label>
             </Chip>
           </div>
-        )}
+        )} */}
 
         {hasVanished && (
           <div className="absolute right-3 top-3 z-10">
@@ -332,19 +343,16 @@ export function ImageCard({
           color={hasVanished ? "success" : phase === "eating" ? "danger" : "warning"}
           maxValue={VANISH_THRESHOLD}
           size="sm"
-          value={Math.min(clicks, VANISH_THRESHOLD)}
+          value={Math.min(globalCount, VANISH_THRESHOLD)}
         >
           <div className="flex items-center justify-between">
             <Label className="text-xs text-muted">
               {hasVanished
-                ? "Image consumed"
+                ? "Image consumed · 100%"
                 : phase === "eating"
-                  ? "Feasting in progress"
-                  : "Your tap on this device"}
+                  ? `Feasting in progress · ${infestationPercent}%`
+                  : `Tap to infest · ${infestationPercent}%`}
             </Label>
-            <span className="text-xs tabular-nums text-muted">
-              {globalCount} global · {Math.min(clicks, VANISH_THRESHOLD)} you
-            </span>
           </div>
           <ProgressBar.Track className="bg-default">
             <ProgressBar.Fill />
@@ -357,7 +365,7 @@ export function ImageCard({
           {isActive && phase === "intact" && !tapConsumed && (
             <Button
               className="w-full sm:w-auto"
-              color="warning"
+              variant="secondary"
               isDisabled={!hydrated}
               size="md"
               onPress={() => void handleTap()}

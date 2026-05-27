@@ -19,10 +19,10 @@ export default function HomePage() {
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <header className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <Chip color="accent" size="sm" variant="soft">
+          {/* <Chip color="accent" size="sm" variant="soft">
             <Sparkles className="size-3" />
             <Chip.Label>HeroUI v3 · Tailwind v4 · Next.js</Chip.Label>
-          </Chip>
+          </Chip> */}
           <Chip color="danger" size="sm" variant="soft">
             <Chip.Label>🪳 Infestation mode</Chip.Label>
           </Chip>
@@ -33,13 +33,10 @@ export default function HomePage() {
             The Cockroach Gallery
           </h1>
           <p className="max-w-2xl text-pretty text-sm leading-relaxed text-muted sm:text-base">
-            Infest portraits{" "}
-            <span className="font-medium text-foreground">one at a time</span> — only
-            the active card is clickable, and you get{" "}
-            <span className="font-medium text-foreground">one tap per picture</span>.
-            That tap adds a roach for{" "}
-            <span className="font-medium text-foreground">every device</span> (saved on
-            the server). Then the next portrait unlocks.
+            You gave gandgi to the nation — not Gandhi,{" "}
+            <span className="font-medium text-foreground">gandgi</span>. Good news:
+            cockroaches eat gandgi. Send them in to eat one face clean, unlock the next.
+            {/* <span className="font-medium text-foreground"> Eat one face clean, unlock the next. */}
           </p>
         </div>
       </header>

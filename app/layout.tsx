@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vanish Gallery",
+  title: "Cockroach Gallery",
   description:
-    "A playful HeroUI v3 gallery where every image disappears after enough clicks, revealing a hidden message.",
+    "A playful HeroUI v3 gallery where every image summons a cockroach after enough clicks, revealing a hidden message.",
 };
 
 export const viewport: Viewport = {

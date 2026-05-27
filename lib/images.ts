@@ -121,4 +121,4 @@ export const galleryItems: GalleryItem[] = [
 ];
 
 /** One tap on the active portrait triggers the swarm (see MAX_TAPS_PER_USER). */
-export const VANISH_THRESHOLD = 10;
+export const VANISH_THRESHOLD = 1000;
